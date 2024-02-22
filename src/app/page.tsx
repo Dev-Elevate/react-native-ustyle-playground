@@ -214,7 +214,7 @@ export default function App() {
   const [code, setCode] = useState(`function add(a, b) {\n  return a + b;\n}`);
 
   return (
-    <main className="flex h-screen flex-row items-center justify-between p-24 gap-2">
+    <main className="flex h-screen flex-row items-center justify-between lg:p-24  p-2 gap-2">
       <div className="flex flex-col h-full flex-1 border-white rounded-md border overflow-hidden">
         <div className="flex flex-row border-b-2">
           <div
