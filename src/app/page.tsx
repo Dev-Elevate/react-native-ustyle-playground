@@ -12,7 +12,101 @@ import * as t from "@babel/types";
 import { default as traverse } from "@babel/traverse";
 import { parse } from "@babel/parser";
 import { default as generate } from "@babel/generator";
-
+const RNStyleProperties = [
+  "alignContent",
+  "alignItems",
+  "alignSelf",
+  "aspectRatio",
+  "backfaceVisibility",
+  "backgroundColor",
+  "borderBottomColor",
+  "borderBottomLeftRadius",
+  "borderBottomRightRadius",
+  "borderBottomWidth",
+  "borderColor",
+  "borderLeftColor",
+  "borderLeftWidth",
+  "borderRadius",
+  "borderRightColor",
+  "borderRightWidth",
+  "borderStyle",
+  "borderTopColor",
+  "borderTopLeftRadius",
+  "borderTopRightRadius",
+  "borderTopWidth",
+  "borderWidth",
+  "bottom",
+  "color",
+  "decomposedMatrix",
+  "direction",
+  "display",
+  "elevation",
+  "flex",
+  "flexBasis",
+  "flexDirection",
+  "flexGrow",
+  "flexShrink",
+  "flexWrap",
+  "fontFamily",
+  "fontSize",
+  "fontStyle",
+  "fontVariant",
+  "fontWeight",
+  "height",
+  "includeFontPadding",
+  "justifyContent",
+  "left",
+  "letterSpacing",
+  "lineHeight",
+  "margin",
+  "marginBottom",
+  "marginHorizontal",
+  "marginLeft",
+  "marginRight",
+  "marginTop",
+  "marginVertical",
+  "maxHeight",
+  "maxWidth",
+  "minHeight",
+  "minWidth",
+  "opacity",
+  "overflow",
+  "overlayColor",
+  "padding",
+  "paddingBottom",
+  "paddingHorizontal",
+  "paddingLeft",
+  "paddingRight",
+  "paddingTop",
+  "paddingVertical",
+  "position",
+  "resizeMode",
+  "right",
+  "rotation",
+  "scaleX",
+  "scaleY",
+  "shadowColor",
+  "shadowOffset",
+  "shadowOpacity",
+  "shadowRadius",
+  "textAlign",
+  "textAlignVertical",
+  "textDecorationColor",
+  "textDecorationLine",
+  "textDecorationStyle",
+  "textShadowColor",
+  "textShadowOffset",
+  "textShadowRadius",
+  "tintColor",
+  "top",
+  "transform",
+  "transformMatrix",
+  "translateX",
+  "translateY",
+  "width",
+  "writingDirection",
+  "zIndex",
+];
 function transformCode(code: string, CONFIG: any) {
   let importName = "react-native-ustyle";
   let importedComponents = [];
@@ -180,6 +274,33 @@ function transformCode(code: string, CONFIG: any) {
   return generate(ast).code;
 }
 
+function KeyValueInput({ alias, value, onValueChange, onAliasChange }) {
+  return (
+    <div className="flex flex-row gap-2 items-center">
+      <input
+        placeholder="alias"
+        onChange={(e) => onAliasChange(e.target.value)}
+        className="text-gray-300 bg-slate-800 p-2  rounded"
+        type="text"
+        value={alias}
+      />
+      :
+      <select
+        onChange={(e) => onValueChange(e.target.value)}
+        value={value ?? "Select a Property"}
+        className="text-gray-300 bg-slate-800 p-2  rounded"
+      >
+        <option disabled value="Select a Property">
+          Select a Property
+        </option>
+        {RNStyleProperties.map((prop) => {
+          return <option value={prop}>{prop}</option>;
+        })}
+      </select>
+    </div>
+  );
+}
+
 export default function Home() {
   const [inputCode, setInputCode] = useState(
     `import React from 'react';
@@ -211,10 +332,13 @@ export default function App() {
     mr: "marginRight",
   });
   const [activeFile, setActiveFile] = useState("app");
+  const [newAlias, setNewAlias] = useState({
+    alias: "",
+    value: "Select a Property",
+  });
   const [code, setCode] = useState(`function add(a, b) {\n  return a + b;\n}`);
-
   return (
-    <main className="flex h-screen flex-row items-center justify-between lg:p-24  p-2 gap-2">
+    <main className="flex h-screen flex-row items-center justify-between lg:p-24 p-2 gap-2">
       <div className="flex flex-col h-full flex-1 border-white rounded-md border overflow-hidden">
         <div className="flex flex-row border-b-2">
           <div
@@ -256,11 +380,44 @@ export default function App() {
             }}
           />
         ) : (
-          <div>
+          <div className="overflow-scroll gap-4 flex flex-col  items-center py-10">
+            <div className="flex gap-4 ">
+              <KeyValueInput
+                alias={newAlias.alias}
+                onAliasChange={(val) => {
+                  setNewAlias({ ...newAlias, alias: val });
+                }}
+                value={newAlias.value}
+                onValueChange={(val) => {
+                  setNewAlias({ ...newAlias, value: val });
+                }}
+              />
+              <button
+                onClick={() => {
+                  setConfig({ ...config, [newAlias.alias]: newAlias.value });
+                  setNewAlias({ alias: "", value: "" });
+                }}
+                className="bg-gray-700 p-2 rounded"
+              >
+                Add
+              </button>
+            </div>
             {Object.keys(config).map((key, ind) => {
               return (
                 <div>
-                  {key}:{config[key]}
+                  <KeyValueInput
+                    alias={key}
+                    onAliasChange={(val) => {
+                      let newConfig = { ...config };
+                      newConfig[val] = newConfig[key];
+                      delete newConfig[key];
+                      setConfig(newConfig);
+                    }}
+                    value={config[key]}
+                    onValueChange={(val) => {
+                      setConfig({ ...config, [key]: val });
+                    }}
+                  />
                 </div>
               );
             })}
